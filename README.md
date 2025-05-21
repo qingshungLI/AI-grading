@@ -1,4 +1,4 @@
-# AI-grading-V2（streamlit实现）
+# AI-grading-V2（streamlit实现）(there is English README)
 ## 概述
 我们励志做一个使用AI大模型识别并理解上传的图片或docx/pdf(转换成图片再输入给大模型)，在三个大模型轮流阅卷并返回json值，进行平均值过后就可以得到最后成绩，点击即可生成总成绩excel表格。同时，本系统也可支持手动评分并统计。
 ## 操作说明
