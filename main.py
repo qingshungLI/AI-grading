@@ -33,6 +33,7 @@ from analyse import *
 import mimetypes
 # Import ZhipuAI SDK for ZhipuAI (GLM) API
 try:
+
     from zhipuai import ZhipuAI
     ZHIPU_AVAILABLE = True
 except ImportError:
@@ -406,7 +407,7 @@ def upload_section(label, key_prefix):
             cols = st.columns(min(3, len(new_images)))
             for idx, img_data in enumerate(new_images):
                 with cols[idx % 3]:
-                    st.image(img_data['data'], caption=img_data['name'], use_container_width=True)
+                    st.image(img_data['data'], caption=img_data['name'])
         else:
             st.info(f"ℹ️ 没有新的{label}文件需要处理")
             
