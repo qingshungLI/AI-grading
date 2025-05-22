@@ -481,7 +481,7 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
         
         with col2:
             # AI自动评分按钮
-            if st.button("🤖 AI自动评分"):
+            if st.button("🤖 AI自动评分（请耐心等待）"):
                 project = st.session_state['projects'][st.session_state['current_project']]
                 
                 # 检查必要条件
