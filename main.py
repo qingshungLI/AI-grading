@@ -406,7 +406,7 @@ def upload_section(label, key_prefix):
             cols = st.columns(min(3, len(new_images)))
             for idx, img_data in enumerate(new_images):
                 with cols[idx % 3]:
-                    st.image(img_data['data'], caption=img_data['name'], use_column_width=True)
+                    st.image(img_data['data'], caption=img_data['name'], use_container_width=True)
         else:
             st.info(f"ℹ️ 没有新的{label}文件需要处理")
             
@@ -894,12 +894,12 @@ elif st.session_state['page'] == "manual_grading" and st.session_state['current_
                         image = image.rotate(st.session_state['rotated_angle'], expand=True)
                     
                     # 普通图片预览
-                    st.image(image, caption=student_data['images'][current_image_index]['name'], use_column_width=True)
+                    st.image(image, caption=student_data['images'][current_image_index]['name'], use_container_width=True)
                 except Exception as e:
                     st.error(f"无法显示图片：{e}")
         else:
             st.info("该学生未上传作答内容")
-        
+
         # 移除文档显示部分
     
     with col_score:
