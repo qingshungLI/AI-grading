@@ -511,10 +511,6 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                             logger.addHandler(streamlit_handler)
                             
                             try:
-                                # 使用千问API密钥、Moonshot API密钥和zhipu API密钥（如果有）
-                                QWEN_API_KEY = "sk-167c49fa9eb949a2bfc6a542897d02df"
-                                MOONSHOT_API_KEY = st.session_state.get('moonshot_api_key', '')                 
-                                ZHIPU_API_KEY = st.session_state.get('zhipu_api_key', '')
                                 result = analyze_and_grade_papers(project, QWEN_API_KEY, MOONSHOT_API_KEY, ZHIPU_API_KEY)
                                 if result == "AI评分完成":
                                     st.success("✅ AI评分完成！请在「成绩表单」中查看结果")
