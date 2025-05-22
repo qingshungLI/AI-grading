@@ -126,7 +126,7 @@ except ImportError:
 
 
 
-st.title("📚 AI-grading-V2）")
+st.title("📚 AI-grading-V2")
 
 # 初始化 session_state 中的项目列表
 if 'projects' not in st.session_state:
