@@ -512,7 +512,7 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                             
                             try:
                                 # 使用千问API密钥、Moonshot API密钥和zhipu API密钥（如果有）
-                                qwen_api = "sk-167c49fa9eb949a2bfc6a542897d02df"
+                                qwen_api = st.session_state.get('qwen_api_key', '')     
                                 moonshot_api = st.session_state.get('moonshot_api_key', '')                 
                                 zhipu_api = st.session_state.get('zhipu_api_key', '')
                                 result = analyze_and_grade_papers(project, qwen_api, moonshot_api, zhipu_api)
