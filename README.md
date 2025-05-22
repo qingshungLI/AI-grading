@@ -18,6 +18,10 @@
 ![excel](excel.png)
 系统设置，填入你的api
 ![api](api.png)
+如果你不想每次测试或使用都填入api密钥，可以在下面的代码区域填写
+![api](api图1.png)
+![api](api图2.png)
+![api](api图3.png)
 ## 残余问题
 - AI大模型的token有限，所以不能够输入特别长的考试题目或答案文件，AI对长文件的理解能力也会很差，这也是每道题就创建一个项目的原因
 - streamlit代码是前后端集成的，效果诚然不如一般的前后端分开，后续准备做成小程序，任重道远
@@ -49,6 +53,10 @@ Click to download the Excel table (you can open the file in the upper right corn
 ![excel](excel.png)
 System settings, fill in your api
 ![api](api.png)
+If you don't want to fill in the API key every time you test or use it, you can fill it in the code area below
+![api](api图1.png)
+![api](api图2.png)
+![api](api图3.png)
 ## Residual issues
 - The AI ​​model has limited tokens, so it cannot input very long test questions or answer files. AI's ability to understand long files is also very poor, which is why a project is created for each question
 - The streamlit code is integrated with the front-end and back-end. The effect is not as good as the general front-end and back-end separation. We plan to make it into a small program in the future, but there is still a long way to go.
