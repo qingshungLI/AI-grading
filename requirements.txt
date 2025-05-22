@@ -34,7 +34,6 @@ torchvision==0.21.0
 volcengine-python-sdk==3.0.2
 websockets==15.0.1
 wheel==0.44.0
-wxPython==4.2.2
 XlsxWriter==3.2.2
 yagmail==0.15.293
 zhipuai==2.1.5.20250421
