@@ -128,7 +128,7 @@ except ImportError:
 
 
 
-st.title("📚 AI判卷系统（多项目管理原型 V2）")
+st.title("📚 AI-grading-V2）")
 
 # 初始化 session_state 中的项目列表
 if 'projects' not in st.session_state:
@@ -512,10 +512,10 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                             
                             try:
                                 # 使用千问API密钥、Moonshot API密钥和zhipu API密钥（如果有）
-                                qwen_api = "sk-167c49fa9eb949a2bfc6a542897d02df"
-                                moonshot_api = st.session_state.get('moonshot_api_key', '')                 
-                                zhipu_api = st.session_state.get('zhipu_api_key', '')
-                                result = analyze_and_grade_papers(project, qwen_api, moonshot_api, zhipu_api)
+                                QWEN_API_KEY = "sk-167c49fa9eb949a2bfc6a542897d02df"
+                                MOONSHOT_API_KEY = st.session_state.get('moonshot_api_key', '')                 
+                                ZHIPU_API_KEY = st.session_state.get('zhipu_api_key', '')
+                                result = analyze_and_grade_papers(project, QWEN_API_KEY, MOONSHOT_API_KEY, ZHIPU_API_KEY)
                                 if result == "AI评分完成":
                                     st.success("✅ AI评分完成！请在「成绩表单」中查看结果")
                                 else:
@@ -578,38 +578,6 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
             
             with model_tabs[0]:
                 st.info("当前显示的是三个模型评分（千问、Moonshot和智谱AI）的平均值")
-                # 显示综合评分结果
-                if 'manual_grading' in st.session_state and 'scores' in st.session_state['manual_grading']:
-                    scores_data = st.session_state['manual_grading']['scores']
-                    data = []
-                    for student_name, scores in scores_data.items():
-                        # 确保scores长度匹配question_count
-                        if len(scores) < question_count:
-                            scores = scores + [0.0] * (question_count - len(scores))
-                        elif len(scores) > question_count:
-                            scores = scores[:question_count]
-                        
-                        # 计算总分
-                        total_score = sum(scores)
-                        
-                        # 生成学生数据行
-                        student_data = [student_name]
-                        student_data.extend(scores)
-                        student_data.append(total_score)
-                        data.append(student_data)
-                    
-                    # 按总分排序
-                    data.sort(key=lambda x: x[-1], reverse=True)
-                    
-                    # 添加排名列
-                    for i, row in enumerate(data):
-                        row.append(i + 1)  # 添加排名
-                    
-                    # 创建DataFrame
-                    df = pd.DataFrame(data, columns=headers)
-                    st.dataframe(df, use_container_width=True)
-                else:
-                    st.warning("暂无综合评分数据")
             
             with model_tabs[1]:
                 # 显示千问模型的评分结果
@@ -618,7 +586,7 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                     for student_name, scores in st.session_state['qwen_grading_results'].items():
                         # 确保scores长度匹配question_count
                         if len(scores) < question_count:
-                            scores = scores + [0.0] * (question_count - len(scores))
+                            scores = scores + [0] * (question_count - len(scores))
                         elif len(scores) > question_count:
                             scores = scores[:question_count]
                         
@@ -651,7 +619,7 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                     for student_name, scores in st.session_state['moonshot_grading_results'].items():
                         # 确保scores长度匹配question_count
                         if len(scores) < question_count:
-                            scores = scores + [0.0] * (question_count - len(scores))
+                            scores = scores + [0] * (question_count - len(scores))
                         elif len(scores) > question_count:
                             scores = scores[:question_count]
                         
@@ -675,7 +643,7 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                     moonshot_df = pd.DataFrame(moonshot_data, columns=headers)
                     st.dataframe(moonshot_df, use_container_width=True)
                 else:
-                    st.warning("暂无Moonshot模型的评分数据")
+                    st.warning("暂无Moonshot模型的评分数据或未启用Moonshot评分")
             
             with model_tabs[3]:
                 # 显示智谱AI模型的评分结果
@@ -684,7 +652,7 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                     for student_name, scores in st.session_state['zhipu_grading_results'].items():
                         # 确保scores长度匹配question_count
                         if len(scores) < question_count:
-                            scores = scores + [0.0] * (question_count - len(scores))
+                            scores = scores + [0] * (question_count - len(scores))
                         elif len(scores) > question_count:
                             scores = scores[:question_count]
                         
@@ -707,8 +675,6 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                     # 创建DataFrame
                     zhipu_df = pd.DataFrame(zhipu_data, columns=headers)
                     st.dataframe(zhipu_df, use_container_width=True)
-                else:
-                    st.warning("暂无智谱AI模型的评分数据")
             
             # 显示统计信息
             st.markdown("### 📈 统计信息")
@@ -731,23 +697,53 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                 st.markdown(f"**标准差**: {std_dev:.2f}")
             
             with col_stats2:
-                # 计算及格率（60%的满分为及格线）
-                passing_threshold = st.session_state.get('exam_full_marks', 100) * 0.6
+                # 初始化 session_state
+                if "exam_full_marks" not in st.session_state:
+                    st.session_state.exam_full_marks = 100
+                if "editing_full_marks" not in st.session_state:
+                    st.session_state.editing_full_marks = False
+
+                # 显示当前满分
+                st.markdown(f"**当前满分**: {st.session_state.exam_full_marks}分")
+
+                # 设置按钮：切换“编辑模式”
+                if st.button("⚙️ 设置考试满分"):
+                    st.session_state.editing_full_marks = True
+
+                # 如果正在编辑，显示输入框和确认按钮
+                if st.session_state.editing_full_marks:
+                    new_full_marks = st.number_input(
+                        "请输入考试满分：",
+                        min_value=1,
+                        max_value=1000,
+                        value=st.session_state.exam_full_marks,
+                        step=1,
+                        key="full_marks_input"
+                    )
+                    if st.button("✅ 确认修改"):
+                        st.session_state.exam_full_marks = new_full_marks
+                        st.session_state.editing_full_marks = False
+                        st.success(f"✅ 已更新考试满分为 {new_full_marks} 分")
+                        st.rerun()  # 重新运行让 UI 立即刷新为非编辑状态
+
+                # 以下使用更新后的满分计算
+                full_marks = st.session_state.exam_full_marks
+
+                # 成绩统计
+                passing_threshold = full_marks * 0.6
+                excellent_threshold = full_marks * 0.85
                 passing_count = sum(1 for score in total_scores if score >= passing_threshold)
-                passing_rate = (passing_count / len(total_scores)) * 100 if total_scores else 0
-                
-                # 计算优秀率（85%的满分为优秀线）
-                excellent_threshold = st.session_state.get('exam_full_marks', 100) * 0.85
                 excellent_count = sum(1 for score in total_scores if score >= excellent_threshold)
-                excellent_rate = (excellent_count / len(total_scores)) * 100 if total_scores else 0
-                
+                total = len(total_scores)
+
                 st.markdown(f"**及格标准(60%)**: {passing_threshold:.1f}分")
-                st.markdown(f"**及格人数**: {passing_count}/{len(total_scores)}")
-                st.markdown(f"**及格率**: {passing_rate:.2f}%")
+                st.markdown(f"**及格人数**: {passing_count}/{total}")
+                st.markdown(f"**及格率**: {passing_count / total * 100:.2f}%" if total else "无数据")
+
                 st.markdown(f"**优秀标准(85%)**: {excellent_threshold:.1f}分")
-                st.markdown(f"**优秀人数**: {excellent_count}/{len(total_scores)}")
-                st.markdown(f"**优秀率**: {excellent_rate:.2f}%")
-            
+                st.markdown(f"**优秀人数**: {excellent_count}/{total}")
+                st.markdown(f"**优秀率**: {excellent_count / total * 100:.2f}%" if total else "无数据")
+
             # 导出Excel按钮
             if st.button("📥 导出成绩表 (Excel)"):
                 # 创建一个新的DataFrame，用于Excel导出
@@ -766,320 +762,9 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
     with tab4:
         st.markdown("## ⚙️ 系统设置")
         
-        # API设置部分
-        st.markdown("### 🤖 AI评分设置")
+        # 评分设置
+        st.markdown("### ⚖️ 评分设置")
         
-        # 初始化API密钥
-        if 'qwen_api_key' not in st.session_state:
-            st.session_state['qwen_api_key'] = ""
-        
-        st.markdown("##### 大模型API 配置")
-        st.markdown("""
-        本系统使用Qwen-VL-plus、moonshot-v1-8k-vision-preview、glm-4-vision-preview进行自动评分。请提供您的 API 密钥进行调用。
-        """)
-            
-        # API密钥输入
-        api_key = st.text_input(
-            "qwen API 密钥 (DashScope API Key)",
-            value=st.session_state['qwen_api_key'],
-            type="password",
-            help="请输入您的千问 DashScope API密钥，用于AI图像识别和评分。格式一般为 sk-xxxxxxxx"
-        )
-        
-        # 自动保存API密钥到session_state
-        st.session_state['qwen_api_key'] = ""
-        
-        # 添加Moonshot API密钥输入
-        if 'moonshot_api_key' not in st.session_state:
-            st.session_state['moonshot_api_key'] = ""
-            
-        moonshot_api_key = st.text_input(
-            "Moonshot API 密钥",
-            value=st.session_state['moonshot_api_key'],
-            type="password",
-            help="请输入您的Moonshot API密钥，用于AI图像识别和评分。格式一般为 sk-xxxxxxxx"
-        )
-        
-        # 自动保存Moonshot API密钥到session_state
-        
-        # 添加智谱AI API密钥输入
-        if 'zhipu_api_key' not in st.session_state:
-            st.session_state['zhipu_api_key'] = ""
-            
-        zhipu_api_key = st.text_input(
-            "智谱AI API 密钥",
-            value=st.session_state['zhipu_api_key'],
-            type="password",
-            help="请输入您的智谱AI API密钥，用于AI图像识别和评分。格式一般为 sk-xxxxxxxx"
-        )
-        
-        # 自动保存智谱AI API密钥到session_state
-        st.session_state['zhipu_api_key'] = zhipu_api_key
-        st.markdown("#### 大模型API 测试")
-        st.markdown("##### qwen API 测试")
-        if st.button("🔄 测试千问API连接"):
-                with st.spinner("🔄 正在测试千问API连接..."):
-                    try:
-                        # 使用硬编码的API密钥
-                        dashscope.api_key = "sk-167c49fa9eb949a2bfc6a542897d02df"
-                        logger.info("开始测试API连接")
-                        
-                        # 创建一个简单的测试图像
-                        test_img = text_to_image("这是一个API测试", "测试图像")
-                        
-                        # 保存为临时文件
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
-                            test_img.save(temp_file, format='PNG')
-                            img_path = temp_file.name
-                        
-                        # 测试API调用
-                        test_prompt = "这是什么图片？请简短描述"
-                        logger.debug(f"测试API调用: {test_prompt}")
-                        
-                        from dashscope import MultiModalConversation
-                        response = MultiModalConversation.call(
-                            model="qwen-vl-plus",
-                            messages=[
-                                {
-                                    "role": "user", 
-                                    "content": [
-                                        {"text": test_prompt},
-                                        {"image": img_path}
-                                    ]
-                                }
-                            ]
-                        )
-                        
-                        # 检查响应
-                        logger.debug(f"测试API响应: {response}")
-                        
-                        if hasattr(response, 'status_code') and response.status_code == 200:
-                            if hasattr(response, 'output') and hasattr(response.output, 'text'):
-                                result = response.output.text
-                                logger.info(f"API测试成功: {result}")
-                                st.success(f"✅ 千问API连接成功! 响应: {result}")
-                            else:
-                                logger.error("API响应缺少output.text字段")
-                                st.error("❌ API连接测试失败: 响应格式异常，缺少output.text字段")
-                        else:
-                            error_code = getattr(response, 'status_code', 'unknown')
-                            error_msg = getattr(response, 'message', 'unknown error')
-                            logger.error(f"API测试失败: 状态码 {error_code}, 错误: {error_msg}")
-                            st.error(f"❌ API连接测试失败: 状态码 {error_code}, 错误: {error_msg}")
-                        
-                        # 删除临时文件
-                        if os.path.exists(img_path):
-                            os.remove(img_path)
-                            logger.debug(f"测试临时文件已删除: {img_path}")
-                            
-                    except Exception as e:
-                        logger.error("API测试失败", exc_info=True)
-                        st.error(f"❌ API连接测试失败: {str(e)}")
-                        logger.exception("API测试异常详情")
-         # 添加 Moonshot API测试按钮
-        st.markdown("##### Moonshot API 测试")
-        if st.button("🔄 测试Moonshot API连接"):
-
-        
-            with st.spinner("🔄 正在测试Moonshot API连接..."):
-                try:
-                    if not MOONSHOT_AVAILABLE:
-                        st.error("❌ OpenAI包未安装，请运行: pip install openai")
-                        logger.error("OpenAI包未安装")
-                    else:
-                        # 获取API密钥
-                        moonshot_api = st.session_state.get('moonshot_api_key', '')
-                        if not moonshot_api:
-                            st.error("❌ 未设置Moonshot API密钥")
-                            logger.error("未设置Moonshot API密钥")
-                        else:
-                            # 创建OpenAI客户端（使用Moonshot API）
-                            client = OpenAI(
-                                api_key=moonshot_api,
-                                base_url="https://api.moonshot.cn/v1",
-                            )
-                            logger.info("开始测试Moonshot API连接")
-                            
-                            # 创建一个简单的测试图像
-                            test_img = text_to_image("这是Moonshot API测试", "测试图像")
-                            
-                            # 将PIL图像转换为字节流并编码为base64
-                            img_byte_arr = BytesIO()
-                            test_img.save(img_byte_arr, format='PNG')
-                            img_byte_arr.seek(0)
-                            img_base64 = base64.b64encode(img_byte_arr.read()).decode('utf-8')
-                        
-                        # 显示测试图片
-                            st.image(test_img, caption="Moonshot测试图片", width=300)
-                            
-                            # 创建测试提示和内容
-                            test_prompt = "这是什么图片？请简短描述"
-                            
-                            # 准备消息
-                            messages = [
-                                {
-                                    "role": "user",
-                                    "content": [
-                                {"type": "text", "text": test_prompt},
-                                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_base64}"}}
-                                    ]
-                                }
-                            ]
-                            
-                            # 记录调用信息
-                            logger.debug(f"Moonshot API调用: {test_prompt}")
-                            
-                            # 调用API
-                            try:
-                                response = client.chat.completions.create(
-                                    model="moonshot-v1-8k-vision-preview",
-                                    messages=messages,
-                                    temperature=0.2,
-                                    max_tokens=100
-                                )
-                                
-                                # 提取结果
-                                result_text = None
-                                if response.choices and len(response.choices) > 0:
-                                    result_text = response.choices[0].message.content
-                                
-                                # 显示结果
-                                if result_text:
-                                    logger.info(f"Moonshot API测试成功: {result_text}")
-                                    st.success(f"✅ Moonshot API连接成功! 响应: {result_text}")
-                                else:
-                                    logger.error("Moonshot API返回空响应")
-                                    st.error("❌ Moonshot API测试失败: 返回空响应")
-                            except Exception as api_e:
-                                logger.error(f"Moonshot API调用失败: {str(api_e)}")
-                                st.error(f"❌ Moonshot API调用失败: {str(api_e)}")
-                                
-                except Exception as e:
-                    logger.error("Moonshot API测试失败", exc_info=True)
-                    st.error(f"❌ Moonshot API测试失败: {str(e)}")
-                    logger.exception("Moonshot API测试异常详情")
-
-       
-        # 添加智谱AI API测试按钮
-        st.markdown("##### 智谱AI API 测试")
-        if st.button("🔄 测试智谱AI API连接"):
-            with st.spinner("🔄 正在测试智谱AI API连接..."):
-                # 获取API密钥
-                zhipu_api = st.session_state.get('zhipu_api_key', '')
-                
-                # 检查API密钥是否设置
-                if not zhipu_api:
-                    st.error("❌ 未设置智谱AI API密钥")
-                    logger.error("未设置智谱AI API密钥")
-                elif zhipu_api == "your_zhipu_api":
-                    st.error("❌ 请修改默认API密钥")
-                    logger.error("使用了默认智谱AI API密钥")
-                else:
-                    try:
-                        # 创建一个简单的测试图像
-                        test_img = text_to_image("这是智谱AI API测试", "测试图像")
-                        
-                        # 将PIL图像转换为字节流并编码为base64
-                        img_byte_arr = BytesIO()
-                        test_img.save(img_byte_arr, format='PNG')
-                        img_byte_arr.seek(0)
-                        img_base64 = base64.b64encode(img_byte_arr.read()).decode('utf-8')
-                        
-                        # 显示测试图片
-                        st.image(test_img, caption="智谱AI测试图片", width=300)
-                        
-                        # 创建测试提示和内容
-                        test_prompt = "这是什么图片？请简短描述"
-                         
-                        # 准备请求参数
-                        params = {
-                            "model": "glm-4v-flash",
-                            "messages": [
-                                {
-                                    "role": "user", 
-                                    "content": [
-                                        {"text": test_prompt},
-                                        {"image": img_base64}
-                                    ]
-                                }
-                            ]
-                        }
-                        
-                        # 记录调用信息
-                        logger.info(f"智谱AI API调用: {test_prompt}")
-                        logger.info(f"API密钥前6位: {zhipu_api[:6] if len(zhipu_api) > 6 else '(短于6字符)'}")
-                        
-                        # 发送API请求
-                        try:
-                            # 使用官方SDK
-                            client = ZhipuAI(api_key=zhipu_api)
-                            
-                            # 发送请求
-                            start_time = time.time()
-                            response = client.chat.completions.create(
-                                model="glm-4v-flash",
-                                messages=[{
-                                    "role": "user",
-                                    "content": [
-                                        {"type": "text", "text": test_prompt},
-                                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_base64}"}}
-                                    ]
-                                }],
-                                
-                                temperature=0.2,
-                                max_tokens=1024
-                            )
-                            request_time = time.time() - start_time
-                            logger.info(f"请求耗时: {request_time:.2f}秒")
-                            
-                            # 添加调试日志
-                            logger.debug(f"API响应: {response}")
-                            
-                            # 检查是否有响应内容
-                            if not response.choices or not response.choices[0].message.content:
-                                st.error("❌ 智谱AI API测试失败: 返回空响应")
-                                logger.error("API返回空响应内容")
-                            else:
-                                try:
-                                    # 获取响应文本
-                                    response_text = response.choices[0].message.content
-                                    logger.info(f"API响应文本: {response_text[:100]}...")
-                                    
-                                    
-                                    st.success("✅ 智谱AI API测试成功")
-                                    logger.info("API测试成功，返回有效JSON")
-                            
-                                except Exception as e:
-                                    st.error(f"❌ 智谱AI API测试失败: {str(e)}")
-                                    logger.error(f"处理API响应失败: {str(e)}")
-                        except requests.exceptions.Timeout:
-                            logger.error("API请求超时")
-                            st.error("❌ 智谱AI API测试失败: 请求超时，请检查网络连接")
-                        except requests.exceptions.ConnectionError as e:
-                            logger.error(f"API连接错误: {str(e)}")
-                            st.error("❌ 智谱AI API测试失败: 连接错误，请检查网络连接和API端点")
-                        except Exception as e:
-                            logger.error(f"API请求异常: {str(e)}")
-                            st.error(f"❌ 智谱AI API测试失败: {str(e)}")
-                    except Exception as e:
-                        logger.error(f"测试准备阶段失败: {str(e)}")
-                        st.error(f"❌ 智谱AI API测试失败: {str(e)}")
-                        logger.exception("API测试异常详情")
-        
-        # 自定义评分设置
-        st.markdown("#### ⚖️ 评分设置")
-        
-        # 添加设置考试满分的功能
-        if 'exam_full_marks' not in st.session_state:
-            st.session_state['exam_full_marks'] = 100
-            
-            full_marks = st.number_input("输入考试满分", min_value=1, max_value=1000, 
-                                      value=st.session_state['exam_full_marks'], step=1)
-        
-            if st.button("确认满分"):
-                st.session_state['exam_full_marks'] = int(full_marks)
-                st.success(f"✅ 已设置考试满分为 {full_marks} 分")
-                
         with st.expander("高级评分设置（每题分数）"):
             # 为每个题目设置最大分数
             if st.session_state['manual_grading']['question_count'] > 0:
@@ -1131,8 +816,6 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
             theme = st.radio("界面主题", ["明亮", "暗黑"], horizontal=True)
             if theme == "暗黑":
                 st.warning("⚠️ 主题将在下次启动应用时生效")
-
-       
 
 # 人工判卷页面
 elif st.session_state['page'] == "manual_grading" and st.session_state['current_project']:

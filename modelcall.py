@@ -66,10 +66,13 @@ try:
 except ImportError:
     ZHIPU_AVAILABLE = False
 
+# API密钥配置
+QWEN_API_KEY = "sk-167c49fa9eb949a2bfc6a542897d02df"
+MOONSHOT_API_KEY = "sk-meFYImU2ZpZPOjtvgPYZpS6qRQUPxtTkpGIDBvAJRf6ePI6u"
+ZHIPU_API_KEY = "d3714ae95b1a46b08ec4341a630f5180.VNQgko3EmkF1IXtC"
 
-
- 
-
+# 设置默认API密钥
+dashscope.api_key = QWEN_API_KEY
 
 # 设置日志
 logging.basicConfig(level=logging.DEBUG, 
@@ -120,7 +123,6 @@ except ImportError:
     ZHIPU_AVAILABLE = False
     st.warning("Volcengine SDK package not installed. zhipu API grading will be disabled. Install with: pip install volcenginesdkarkruntime")
 
-dashscope.api_key = ""
 def create_scoring_prompt(base_prompt, question_count, max_score):
     """
     创建标准化的评分提示词，确保模型输出符合要求的分数
@@ -257,10 +259,8 @@ def simple_moonshot_call(image_path, prompt, api_key=None, max_retries=3):
     """
     增强版Moonshot API调用，专为学生作答识别优化
     """
-    # 使用硬编码的API密钥或传入的API密钥
-    moonshot_api_key = ""
-    if api_key:
-        moonshot_api_key = api_key
+    # 使用传入的API密钥或默认密钥
+    moonshot_api_key = MOONSHOT_API_KEY
     
     logger.info(f"增强版Moonshot API调用: {image_path}")
     
@@ -283,7 +283,7 @@ def simple_moonshot_call(image_path, prompt, api_key=None, max_retries=3):
         try:
             # 创建OpenAI客户端（使用Moonshot API）
             client = OpenAI(
-                api_key=moonshot_api_key,
+                api_key=MOONSHOT_API_KEY,
                 base_url="https://api.moonshot.cn/v1",
             )
             
@@ -552,10 +552,9 @@ def simple_qwen_vl_call(image_path, prompt, api_key=None, max_retries=3):
     """
     增强版千问API调用，专为学生作答识别优化，确保返回有效的JSON结果的同时提供辅助分析文本
     """
-    # 使用硬编码的API密钥
-    
-    if api_key:
-        dashscope.api_key = api_key
+    # 使用传入的API密钥或默认密钥
+  
+    dashscope.api_key = QWEN_API_KEY
     
     logger.info(f"增强版API调用: {image_path}")
     
@@ -844,13 +843,10 @@ def simple_qwen_vl_call(image_path, prompt, api_key=None, max_retries=3):
 
 def simple_zhipu_call(image_path, prompt, api_key=None, max_retries=3):
     """
-    使用智谱AI GLM-4V模型API进行图片分析和评分，强制返回JSON格式的分数
+    增强版智谱AI API调用，专为学生作答识别优化
     """
-    # 使用提供的API密钥
-    zhipu_api_key = api_key
-    if not zhipu_api_key:
-        logger.error("未提供智谱AI API密钥")
-        return {"1": 2}
+    # 使用传入的API密钥或默认密钥
+    zhipu_api_key=ZHIPU_API_KEY
     
     logger.info(f"智谱AI API调用: {image_path}")
     
@@ -928,7 +924,7 @@ def simple_zhipu_call(image_path, prompt, api_key=None, max_retries=3):
             
             try:
                 # 创建ZhipuAI客户端
-                client = ZhipuAI(api_key=zhipu_api_key)
+                client = ZhipuAI(api_key=ZHIPU_API_KEY)
                 
                 # 构建请求内容，强制要求JSON格式
                 messages = [
@@ -1083,10 +1079,9 @@ def call_qwen_vl_api_direct(image_path, prompt, api_key=None):
     """
     直接调用千问VL API，更好地处理返回结果
     """
-    # 使用硬编码的API密钥
-    
-    if api_key:
-        dashscope.api_key = api_key
+    # 使用传入的API密钥或默认密钥
+   
+    dashscope.api_key = QWEN_API_KEY
     
     logger.info(f"直接调用API处理图片: {image_path}")
     logger.info(f"提示词: {prompt[:100]}...")
@@ -1202,26 +1197,26 @@ def call_qwen_vl_api_direct(image_path, prompt, api_key=None):
         return '{"1": 0}'
 
 # AI模型集成 - Qwen VL API
-def call_qwen_vl_api(image_data, prompt, api_key, max_retries=1):
+def call_qwen_vl_api(image_data, prompt, api_key=None, max_retries=1):
     """
     调用千问VL API进行图像理解
     
     参数:
     image_data - 图像数据（BytesIO对象或图像文件路径）
     prompt - 向模型提问的文本
-    api_key - API密钥，但现在直接使用dashscope库设置
+    api_key - API密钥，如果为None则使用默认密钥
     max_retries - 最大重试次数
     
     返回:
     模型的文本响应，或错误消息。不返回None。
     """
-    # 使用dashscope库直接调用API
-    # 使用硬编码的API密钥
-    
+    # 使用传入的API密钥或默认密钥
+   
+    dashscope.api_key = QWEN_API_KEY
     
     logger.debug(f"设置 dashscope.api_key: {dashscope.api_key[:5]}...")
     
-    img_path = None  # 初始化变量，以便在finally块中清理
+    temp_img_path = None  # 初始化变量，以便在finally块中清理
     
     for retry in range(max_retries + 1):
         if retry > 0:
@@ -1261,16 +1256,16 @@ def call_qwen_vl_api(image_data, prompt, api_key, max_retries=1):
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
                     image_data.seek(0)
                     temp_file.write(image_data.read())
-                    img_path = temp_file.name
-                    logger.debug(f"临时图片文件已保存: {img_path}")
+                    temp_img_path = temp_file.name
+                    logger.debug(f"临时图片文件已保存: {temp_img_path}")
             elif isinstance(image_data, str):
                 # 如果是文件路径，直接使用
-                img_path = image_data
-                logger.debug(f"使用现有图片文件路径: {img_path}")
+                temp_img_path = image_data
+                logger.debug(f"使用现有图片文件路径: {temp_img_path}")
                 
                 # 尝试检查文件类型
                 try:
-                    with open(img_path, 'rb') as f:
+                    with open(temp_img_path, 'rb') as f:
                         header = f.read(20)
                         is_png = header.startswith(b'\x89PNG')
                         is_jpg = header.startswith(b'\xff\xd8\xff')
@@ -1284,14 +1279,14 @@ def call_qwen_vl_api(image_data, prompt, api_key, max_retries=1):
                 return error_msg
             
             # 确保图像文件存在
-            if not os.path.exists(img_path):
-                error_msg = f"图像文件不存在: {img_path}"
+            if not os.path.exists(temp_img_path):
+                error_msg = f"图像文件不存在: {temp_img_path}"
                 logger.error(error_msg)
                 return error_msg
                 
             # 记录文件大小
             try:
-                file_size = os.path.getsize(img_path)
+                file_size = os.path.getsize(temp_img_path)
                 logger.debug(f"图片文件大小: {file_size} 字节")
             except Exception as size_e:
                 logger.warning(f"获取文件大小时出错: {str(size_e)}")
@@ -1308,12 +1303,12 @@ def call_qwen_vl_api(image_data, prompt, api_key, max_retries=1):
                     "role": "user",
                     "content": [
                         {"text": prompt},
-                        {"image": img_path}
+                        {"image": temp_img_path}
                     ]
                 }
             ]
             
-            logger.debug(f"API请求配置: model=qwen-vl-plus, image_path={img_path}")
+            logger.debug(f"API请求配置: model=qwen-vl-plus, image_path={temp_img_path}")
             
             # 增强错误处理
             try:
@@ -1449,21 +1444,26 @@ def call_qwen_vl_api(image_data, prompt, api_key, max_retries=1):
             
         finally:
             # 清理临时文件
-            if img_path and isinstance(image_data, BytesIO) and os.path.exists(img_path):
+            if temp_img_path and isinstance(image_data, BytesIO) and os.path.exists(temp_img_path):
                 try:
-                    os.remove(img_path)
-                    logger.debug(f"临时文件已删除: {img_path}")
+                    os.remove(temp_img_path)
+                    logger.debug(f"临时文件已删除: {temp_img_path}")
                 except Exception as e:
                     logger.debug(f"删除临时文件失败: {str(e)}")
     
     # 如果所有重试都失败，返回一个默认消息
     return "经过多次尝试，API调用仍然失败"
 
-def analyze_and_grade_papers(project, qwen_api, moonshot_api, zhipu_api):
+def analyze_and_grade_papers(project, qwen_api=None, moonshot_api=None, zhipu_api=None):
     """
     分析并评分所有学生的试卷
     """
     try:
+        # 使用传入的API密钥或默认密钥
+        qwen_api = qwen_api if qwen_api else QWEN_API_KEY
+        moonshot_api = moonshot_api if moonshot_api else MOONSHOT_API_KEY
+        zhipu_api = zhipu_api if zhipu_api else ZHIPU_API_KEY
+        
         # 获取题目数量
         question_count = st.session_state.get('manual_grading', {}).get('question_count', 0)
         if question_count <= 0:
@@ -1476,6 +1476,15 @@ def analyze_and_grade_papers(project, qwen_api, moonshot_api, zhipu_api):
         qwen_results = {}
         moonshot_results = {}
         zhipu_results = {}
+        
+        # 检查API密钥是否有效
+        use_moonshot = bool(moonshot_api and moonshot_api.strip())
+        use_zhipu = bool(zhipu_api and zhipu_api.strip())
+        
+        if not use_moonshot:
+            logger.warning("未提供Moonshot API密钥，跳过Moonshot评分")
+        if not use_zhipu:
+            logger.warning("未提供智谱AI API密钥，跳过智谱评分")
         
         # 遍历每个学生
         for student_name, student_data in project['stu'].items():
@@ -1490,25 +1499,45 @@ def analyze_and_grade_papers(project, qwen_api, moonshot_api, zhipu_api):
             
             # 处理每张图片
             for img_data in student_data['images']:
-                # 调用三个模型进行评分
+                # 调用千问模型进行评分
                 qwen_result = simple_qwen_vl_call(img_data['data'], "请评分", qwen_api)
-                moonshot_result = simple_moonshot_call(img_data['data'], "请评分", moonshot_api)
-                zhipu_result = simple_zhipu_call(img_data['data'], "请评分", zhipu_api)
-                
-                # 记录评分结果
                 logger.info(f"千问评分结果: {qwen_result}")
-                logger.info(f"Moonshot评分结果: {moonshot_result}")
-                logger.info(f"智谱AI评分结果: {zhipu_result}")
                 
-                # 更新分数数组
+                # 更新千问分数
                 for i in range(question_count):
                     q_num = str(i + 1)
                     if q_num in qwen_result:
                         qwen_scores[i] = max(qwen_scores[i], qwen_result[q_num])
-                    if q_num in moonshot_result:
-                        moonshot_scores[i] = max(moonshot_scores[i], moonshot_result[q_num])
-                    if q_num in zhipu_result:
-                        zhipu_scores[i] = max(zhipu_scores[i], zhipu_result[q_num])
+                
+                # 如果启用了Moonshot，调用Moonshot模型
+                if use_moonshot:
+                    moonshot_result = simple_moonshot_call(img_data['data'], "请评分", MOONSHOT_API_KEY)
+                    logger.info(f"Moonshot评分结果: {moonshot_result}")
+                    
+                    # 更新Moonshot分数
+                    for i in range(question_count):
+                        q_num = str(i + 1)
+                        if q_num in moonshot_result:
+                            moonshot_scores[i] = max(moonshot_scores[i], moonshot_result[q_num])
+                else:
+                    # 如果未启用Moonshot，使用千问分数
+                    moonshot_scores = qwen_scores.copy()
+                    logger.info("使用千问分数作为Moonshot分数")
+                
+                # 如果启用了智谱AI，调用智谱AI模型
+                if use_zhipu:
+                    zhipu_result = simple_zhipu_call(img_data['data'], "请评分",ZHIPU_API_KEY)
+                    logger.info(f"智谱AI评分结果: {zhipu_result}")
+                    
+                    # 更新智谱AI分数
+                    for i in range(question_count):
+                        q_num = str(i + 1)
+                        if q_num in zhipu_result:
+                            zhipu_scores[i] = max(zhipu_scores[i], zhipu_result[q_num])
+                else:
+                    # 如果未启用智谱AI，使用千问分数
+                    zhipu_scores = qwen_scores.copy()
+                    logger.info("使用千问分数作为智谱AI分数")
             
             # 计算平均分
             avg_scores = []

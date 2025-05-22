@@ -33,7 +33,10 @@ from modelcall import (
     simple_zhipu_call,
     simple_moonshot_call,
     call_qwen_vl_api_direct,
-    call_qwen_vl_api
+    call_qwen_vl_api,
+    ZHIPU_API_KEY,
+    MOONSHOT_API_KEY,
+    QWEN_API_KEY
 )
 # Import ZhipuAI SDK for ZhipuAI (GLM) API
 try:
@@ -126,7 +129,7 @@ except ImportError:
 
 
 
-def analyze_and_grade_papers(project, api_key, moonshot_api_key=None, zhipu_api_key=None):
+def analyze_and_grade_papers(project, api_key, moonshot_api_key=MOONSHOT_API_KEY, zhipu_api_key=ZHIPU_API_KEY):
     """
     分析并评分所有学生的答卷，使用三个AI模型并取平均值
     
@@ -526,35 +529,30 @@ def analyze_and_grade_papers(project, api_key, moonshot_api_key=None, zhipu_api_
                             qwen_score_dict = simple_qwen_vl_call(processed_img_path, json_prompt, api_key)
                             
                             # 2. 使用Moonshot模型评分
-                            if moonshot_api_key and MOONSHOT_AVAILABLE:
+                            if MOONSHOT_AVAILABLE:
                                 st.info(f"🔍 正在使用Moonshot模型评分: {student_name} 图片 {img_idx+1}...")
                                 logger.info("使用Moonshot模型处理学生答卷")
-                                moonshot_score_dict = simple_moonshot_call(processed_img_path, json_prompt, moonshot_api_key)
+                                moonshot_score_dict = simple_moonshot_call(processed_img_path, json_prompt, MOONSHOT_API_KEY)
                             else:
-                                if not MOONSHOT_AVAILABLE:
-                                    logger.warning("未安装OpenAI包，跳过Moonshot评分")
-                                    st.warning("未安装OpenAI包，跳过Moonshot评分。请运行 pip install openai")
-                                elif not moonshot_api_key:
-                                    logger.warning("未提供Moonshot API密钥，跳过Moonshot评分")
-                                # 没有Moonshot API时，使用千问分数作为Moonshot分数
+                                
+                                logger.warning("未提供Moonshot API密钥，跳过Moonshot评分")
+                            # 没有Moonshot API时，使用千问分数作为Moonshot分数
                                 moonshot_score_dict = qwen_score_dict.copy()
-                            
+                        
                             # 3. 使用智谱AI模型评分
-                            if zhipu_api_key and ZHIPU_AVAILABLE:
+                            if ZHIPU_AVAILABLE:
                                 st.info(f"🔍 正在使用智谱AI GLM-4V模型评分: {student_name} 图片 {img_idx+1}...")
                                 logger.info("使用智谱AI GLM-4V模型处理学生答卷")
-                                zhipu_score_dict = simple_zhipu_call(processed_img_path, json_prompt, zhipu_api_key)
+                                zhipu_score_dict = simple_zhipu_call(processed_img_path, json_prompt,ZHIPU_API_KEY)
                                 # 使用zhipu_score_dict替代原来的doubao_score_dict
                                 doubao_score_dict = zhipu_score_dict
                             else:
                                 if not ZHIPU_AVAILABLE:
                                     logger.warning("未安装智谱AI SDK，跳过智谱评分")
                                     st.warning("未安装智谱AI SDK，跳过智谱评分。请运行 pip install zhipuai")
-                                elif not zhipu_api_key:
+                                elif not ZHIPU_API_KEY:
                                     logger.warning("未提供智谱AI API密钥，跳过智谱评分")
-                                elif zhipu_api_key == "your_zhipu_api":
-                                    logger.warning("使用了默认智谱AI API密钥，跳过智谱评分")
-                                    st.warning("请在设置页面输入有效的智谱AI API密钥")
+                                
                                 # 没有智谱AI API时，使用千问分数
                                 doubao_score_dict = qwen_score_dict.copy()
                                 logger.info("使用千问分数作为智谱AI分数")
