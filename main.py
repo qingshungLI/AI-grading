@@ -30,6 +30,7 @@ import base64
 from convert import *
 from modelcall import *
 from analyse import *
+import mimetypes
 # Import ZhipuAI SDK for ZhipuAI (GLM) API
 try:
     from zhipuai import ZhipuAI
@@ -119,10 +120,13 @@ except ImportError:
     st.warning("Volcengine SDK package not installed. zhipu API grading will be disabled. Install with: pip install volcenginesdkarkruntime")
 
 
-
-
-
-
+def fix_uploaded_file(file):
+    """补全文件 MIME 类型（仅在浏览器上传异常时调用）"""
+    if not file.type or file.type == 'application/octet-stream':
+        mime, _ = mimetypes.guess_type(file.name)
+        if mime:
+            file.type = mime
+    return file
 
 
 
@@ -342,6 +346,7 @@ def upload_section(label, key_prefix):
     if uploaded_files:
         new_images = []
         for file in uploaded_files:
+            file = fix_uploaded_file(file)
             try:
                 # 检查文件是否已经转换过
                 if file.name in st.session_state[f'{key_prefix}_converted_files']:
