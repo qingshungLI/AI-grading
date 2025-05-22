@@ -30,7 +30,6 @@ rsa==4.9.1
 schedule==1.2.2
 setuptools==75.1.0
 sympy==1.13.1
-torchaudio==2.6.0+cu124
 torchvision==0.21.0
 volcengine-python-sdk==3.0.2
 websockets==15.0.1
