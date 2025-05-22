@@ -22,9 +22,6 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')  # 使用非交互式后端
-import pythoncom  # 添加COM支持
-import win32com.client  # 添加Windows COM支持
-
 # Import OpenAI client for Moonshot API
 from openai import OpenAI
 import base64
