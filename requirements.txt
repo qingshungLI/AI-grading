@@ -12,7 +12,7 @@ httpx==0.28.1
 imbox==0.9.8
 jiter==0.10.0
 jsonpointer==2.1
-lxml==5.2.1
+lxml==5.2.1 --only-binary=lxml
 matplotlib==3.9.2
 mkl-service==2.4.0
 openai==1.79.0
