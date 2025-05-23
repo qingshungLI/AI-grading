@@ -131,7 +131,217 @@ def fix_uploaded_file(file):
 
 
 
-st.title("📚 AI-grading-V2（左上角‘>’创建项目）")
+st.markdown("""
+<style>
+.starry-bg {
+  position: fixed;
+  z-index: 0;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  pointer-events: none;
+  overflow: hidden;
+  background: #070a1a;
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.85;
+  animation: twinkle 2.5s infinite alternate;
+}
+.star.s1 { background: #fff; width:3px; height:3px; }
+.star.s2 { background: #FFD700; width:4px; height:4px; }
+.star.s3 { background: #4169E1; width:3px; height:3px; }
+.star.s4 { background: #FF4500; width:2.5px; height:2.5px; }
+.star.s5 { background: #32CD32; width:3px; height:3px; }
+@keyframes twinkle {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+.meteor {
+  position: absolute;
+  width: 2.5px;
+  height: 140px;
+  background: linear-gradient(90deg, #4169E1 0%, #FFD700 100%);
+  opacity: 0.85;
+  border-radius: 50%;
+  transform: rotate(-25deg);
+  animation: meteor-fall-accel 2.2s linear infinite;
+}
+.meteor.m1 { left: 10vw; top: 10vh; animation-delay: 0s; }
+.meteor.m2 { left: 30vw; top: 20vh; animation-delay: 0.7s; }
+.meteor.m3 { left: 60vw; top: 5vh; animation-delay: 1.3s; }
+.meteor.m4 { left: 80vw; top: 15vh; animation-delay: 1.8s; }
+.meteor.m5 { left: 50vw; top: 30vh; animation-delay: 0.9s; }
+.meteor.m6 { left: 20vw; top: 40vh; animation-delay: 1.5s; }
+.meteor.m7 { left: 70vw; top: 25vh; animation-delay: 0.4s; }
+.meteor.m8 { left: 90vw; top: 8vh; animation-delay: 1.6s; }
+@keyframes meteor-fall-accel {
+  0% {
+    opacity: 0;
+    transform: rotate(-25deg) translateY(-200px) translateX(0) scaleX(1) scaleY(1);
+  }
+  10% {
+    opacity: 1;
+    transform: rotate(-25deg) translateY(0px) translateX(0) scaleX(1) scaleY(1);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-25deg) translateY(400px) translateX(120px) scaleX(1.1) scaleY(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-25deg) translateY(900px) translateX(300px) scaleX(1.2) scaleY(0.8);
+  }
+}
+</style>
+<div class="starry-bg">
+  <!-- 更大更密集的多色星星，分布随机 -->
+  <div class="star s1" style="top:10vh;left:20vw;animation-duration:2.2s"></div>
+  <div class="star s2" style="top:30vh;left:40vw;animation-duration:1.7s"></div>
+  <div class="star s3" style="top:60vh;left:70vw;animation-duration:2.5s"></div>
+  <div class="star s4" style="top:80vh;left:10vw;animation-duration:1.9s"></div>
+  <div class="star s5" style="top:50vh;left:90vw;animation-duration:2.1s"></div>
+  <div class="star s1" style="top:20vh;left:60vw;animation-duration:2.3s"></div>
+  <div class="star s2" style="top:40vh;left:80vw;animation-duration:1.8s"></div>
+  <div class="star s3" style="top:70vh;left:30vw;animation-duration:2.4s"></div>
+  <div class="star s4" style="top:15vh;left:55vw;animation-duration:2.0s"></div>
+  <div class="star s5" style="top:75vh;left:15vw;animation-duration:2.6s"></div>
+  <div class="star s1" style="top:12vh;left:25vw;animation-duration:2.1s"></div>
+  <div class="star s2" style="top:35vh;left:45vw;animation-duration:1.6s"></div>
+  <div class="star s3" style="top:65vh;left:75vw;animation-duration:2.2s"></div>
+  <div class="star s4" style="top:85vh;left:12vw;animation-duration:1.8s"></div>
+  <div class="star s5" style="top:55vh;left:92vw;animation-duration:2.0s"></div>
+  <div class="star s1" style="top:22vh;left:62vw;animation-duration:2.4s"></div>
+  <div class="star s2" style="top:42vh;left:82vw;animation-duration:1.7s"></div>
+  <div class="star s3" style="top:72vh;left:32vw;animation-duration:2.3s"></div>
+  <div class="star s4" style="top:18vh;left:58vw;animation-duration:2.2s"></div>
+  <div class="star s5" style="top:78vh;left:18vw;animation-duration:2.5s"></div>
+  <!-- 更多星星可继续添加 -->
+  <div class="meteor m1"></div>
+  <div class="meteor m2"></div>
+  <div class="meteor m3"></div>
+  <div class="meteor m4"></div>
+  <div class="meteor m5"></div>
+  <div class="meteor m6"></div>
+  <div class="meteor m7"></div>
+  <div class="meteor m8"></div>
+</div>
+""", unsafe_allow_html=True)
+# 添加自定义CSS样式
+st.markdown("""
+<style>
+@keyframes border-rainbow {
+    0% { border-image: linear-gradient(90deg, #FFD700, #4169E1, #32CD32, #FF4500) 1; }
+    25% { border-image: linear-gradient(90deg, #FF4500, #FFD700, #4169E1, #32CD32) 1; }
+    50% { border-image: linear-gradient(90deg, #32CD32, #FF4500, #FFD700, #4169E1) 1; }
+    75% { border-image: linear-gradient(90deg, #4169E1, #32CD32, #FF4500, #FFD700) 1; }
+    100% { border-image: linear-gradient(90deg, #FFD700, #4169E1, #32CD32, #FF4500) 1; }
+}
+@keyframes bg-glow {
+    0% { box-shadow: 0 0 60px 10px #FFD70044, 0 0 0px 0px #4169E144; }
+    50% { box-shadow: 0 0 80px 30px #4169E144, 0 0 40px 10px #FFD70044; }
+    100% { box-shadow: 0 0 60px 10px #FFD70044, 0 0 0px 0px #4169E144; }
+}
+.artistic-title {
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    font-size: 7em;
+    text-align: center;
+    background: linear-gradient(90deg, #4169E1 0%, #FFD700 33%, #32CD32 66%, #FF4500 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    /* 更强烈的3D立体感text-shadow */
+    text-shadow:
+        0 2px 0 #fff,
+        0 4px 0 #FFD700,
+        0 8px 0 #FFD700,
+        0 12px 0 #FFD700,
+        0 16px 8px #333,
+        3px 3px 0 #FFD700,
+        -3px 3px 0 #4169E1,
+        3px -3px 0 #32CD32,
+        -3px -3px 0 #FF4500,
+        0 4px 12px rgba(0,0,0,0.45),
+        0 8px 24px rgba(0,0,0,0.35),
+        0 1px 0 #fff;
+    padding: 30px 0 20px 0;
+    margin: 0;
+    border: 8px solid;
+    border-radius: 18px;
+    border-image: linear-gradient(90deg, #FFD700, #4169E1, #32CD32, #FF4500) 1;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-weight: 900;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: always;
+    position: relative;
+    filter: contrast(1.2) brightness(1.05);
+    overflow: hidden;
+    /* 让大方框变成左右平行四边形 */
+    clip-path: polygon(6% 0, 94% 0, 100% 100%, 0% 100%);
+    animation: border-rainbow 4s linear infinite, bg-glow 3s ease-in-out infinite;
+    box-shadow: 0 0 60px 10px #FFD70044, 0 0 0px 0px #4169E144;
+    margin-bottom: 48px !important;  /* 加大下方间距 */
+}
+.artistic-title::after {
+    content: '';
+    position: absolute;
+    left: -10%;
+    top: 0;
+    width: 20%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.8) 0%,
+        rgba(255,255,255,0) 10%,
+        rgba(255,215,0,0.7) 40%,
+        rgba(255,215,0,1) 50%,
+        rgba(255,215,0,0.7) 60%,
+        rgba(255,255,255,0) 90%,
+        rgba(0,0,0,0.8) 100%
+    );
+    pointer-events: none;
+    mix-blend-mode: lighten;
+    filter: blur(2px);
+    animation: goldshine 1.2s linear infinite;
+    transform: skewX(-20deg);
+}
+@keyframes goldshine {
+    0% { left: -10%; }
+    100% { left: 90%; }
+}
+.stApp h1 {
+    margin-top: 0 !important;
+    margin-bottom: 32px !important;  /* "AI判卷系统 - 登录"下方间距 */
+}
+.stTabs [data-baseweb="tab-list"] {
+    margin-bottom: 24px !important;
+    gap: 24px !important;  /* 选项卡间距 */
+}
+.stTabs [data-baseweb="tab"] {
+    letter-spacing: 2.5px !important;  /* 选项卡字间距 */
+    font-size: 1.15em !important;
+    padding: 0.7em 2.2em !important;
+}
+.stTabs [data-baseweb="tab"]:hover {
+    background: #f0f4ff;
+    border-radius: 8px;
+}
+.stTabs [data-baseweb="tab"]:active {
+    background: #e0e8ff;
+}
+.stTabs [data-baseweb="tab"] span {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# 使用自定义样式的标题
+st.markdown('<div class="artistic-title">📚 AI-grading</div>', unsafe_allow_html=True)
+
 
 # 初始化 session_state 中的项目列表
 if 'projects' not in st.session_state:
