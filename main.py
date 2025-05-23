@@ -1422,10 +1422,6 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                 preview_size = st.slider("预览图片大小", min_value=100, max_value=800, value=400)
                 st.session_state['preview_size'] = preview_size
             
-            theme = st.radio("界面主题", ["明亮", "暗黑"], horizontal=True)
-            if theme == "暗黑":
-                st.warning("⚠️ 主题将在下次启动应用时生效")
-
 # 人工判卷页面
 elif st.session_state['page'] == "manual_grading" and st.session_state['current_project']:
     project = st.session_state['projects'][st.session_state['current_project']]
