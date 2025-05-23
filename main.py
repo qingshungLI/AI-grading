@@ -647,7 +647,7 @@ if not st.session_state['authenticated']:
         <span style="font-size:2em;">👉</span>
         <span style="color:#ffffff;">
             <b>欢迎使用AI判卷系统！</b><br>
-            登录后请点击左上角的 <b style="font-size:1.2em;">"≡"</b> 展开侧边栏，<br>
+            登录后请点击左上角的 <b style="font-size:1.2em;">"<"</b> 展开侧边栏，<br>
             然后点击 <b>➕ 创建新项目</b> 开始体验吧！
         </span>
         <span style="font-size:2em;">✨</span>
