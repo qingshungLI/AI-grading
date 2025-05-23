@@ -744,12 +744,64 @@ else:
         </ul>
         </div>
         """, unsafe_allow_html=True)
- 
+    
     # 从数据库加载用户的项目数据
     if 'projects' not in st.session_state:
         st.session_state['projects'] = db_manager.get_user_projects(st.session_state['current_user'])
     if 'current_project' not in st.session_state:
         st.session_state['current_project'] = None
+
+    # 新建项目
+    with st.sidebar.expander("➕ 创建新项目"):
+        new_project_name = st.text_input("项目名称（如：2025高一期中考试）")
+        if st.button("创建项目"):
+            if new_project_name in st.session_state['projects']:
+                st.warning("⚠️ 该项目名已存在！")
+            elif new_project_name.strip() == "":
+                st.warning("⚠️ 项目名不能为空")
+            else:
+                st.session_state['projects'][new_project_name] = {}
+                st.session_state['current_project'] = new_project_name
+                # 保存到数据库
+                db_manager.save_project(
+                    st.session_state['current_user'],
+                    new_project_name,
+                    st.session_state['projects'][new_project_name]
+                )
+                st.success(f"✅ 已创建并进入项目：{new_project_name}")
+
+    # 选择已有项目
+    if st.session_state['projects']:
+        for name in list(st.session_state['projects'].keys()):
+            col1, col2 = st.sidebar.columns([4, 1])
+            if col1.button(f"📁 {name}", key=f"switch_{name}"):
+                st.session_state['current_project'] = name
+            if col2.button("❌", key=f"delete_{name}"):
+                del st.session_state['projects'][name]
+                # 从数据库删除项目
+                db_manager.delete_project(st.session_state['current_user'], name)
+                st.sidebar.warning(f"🗑️ 已删除项目：{name}")
+                if st.session_state['current_project'] == name:
+                    st.session_state['current_project'] = next(
+                        iter(st.session_state['projects']), None)
+    else:
+        st.sidebar.info("暂无项目，请先创建")
+
+# 主页面
+if st.session_state['page'] == "main" and st.session_state['current_project']:
+    st.markdown(f"### 当前项目：`{st.session_state['current_project']}`")
+    
+    # 添加选项卡
+    tab1, tab2, tab3, tab4 = st.tabs(["📤 内容上传", "🖋️ 人工判卷", "📊 成绩表单", "⚙️ 设置"])
+    
+    with tab1:
+        st.markdown("请上传判卷所需的内容，每项支持多张图片和多个文档上传，可自定义名称：")
+
+        # 移动所有上传功能到Tab1中
+        upload_section("📝 题目", "q")
+        upload_section("📄 标准答案", "ans")
+        upload_student_section()
+        upload_section("✅ 评分标准", "rub")
 
 # --------------------
 # 1. 项目管理区域
@@ -1311,7 +1363,7 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
                 # 显示当前满分
                 st.markdown(f"**当前满分**: {st.session_state.exam_full_marks}分")
 
-                # 设置按钮：切换“编辑模式”
+                # 设置按钮：切换"编辑模式"
                 if st.button("⚙️ 设置考试满分"):
                     st.session_state.editing_full_marks = True
 
@@ -1409,18 +1461,6 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
             else:
                 st.info("请先在「人工判卷」标签页设置题目数量")
         
-        # 界面设置
-        st.markdown("#### 🎨 界面设置")
-        with st.expander("界面偏好"):
-            st.markdown("自定义界面显示选项")
-            show_preview = st.checkbox("启用图片预览", value=True)
-            if show_preview:
-                preview_size = st.slider("预览图片大小", min_value=100, max_value=800, value=400)
-                st.session_state['preview_size'] = preview_size
-            
-            theme = st.radio("界面主题", ["明亮", "暗黑"], horizontal=True)
-            if theme == "暗黑":
-                st.warning("⚠️ 主题将在下次启动应用时生效")
 
 # 人工判卷页面
 elif st.session_state['page'] == "manual_grading" and st.session_state['current_project']:
