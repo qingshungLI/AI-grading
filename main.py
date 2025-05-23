@@ -396,29 +396,7 @@ if 'manual_grading' not in st.session_state:
         'current_student_index': 0,
         'current_image_index': 0
     }# 初始化session state
-if 'authenticated' not in st.session_state:
-    st.session_state['authenticated'] = False
-if 'current_user' not in st.session_state:
-    st.session_state['current_user'] = None
-if 'session_id' not in st.session_state:
-    st.session_state['session_id'] = None
-if 'login_attempts' not in st.session_state:
-    st.session_state['login_attempts'] = {}
-if 'last_login_attempt' not in st.session_state:
-    st.session_state['last_login_attempt'] = {}
-if 'current_project' not in st.session_state:
-    st.session_state['current_project'] = None
-if 'page' not in st.session_state:
-    st.session_state['page'] = "main"
-if 'projects' not in st.session_state:
-    st.session_state['projects'] = {}
-if 'manual_grading' not in st.session_state:
-    st.session_state['manual_grading'] = {
-        'question_count': 0,
-        'scores': {},
-        'current_student_index': 0,
-        'current_image_index': 0
-    }
+
 # 确保manual_grading中包含所有必要的键
 elif 'manual_grading' in st.session_state:
     if 'current_student_index' not in st.session_state['manual_grading']:
@@ -430,34 +408,12 @@ elif 'manual_grading' in st.session_state:
     if 'question_count' not in st.session_state['manual_grading']:
         st.session_state['manual_grading']['question_count'] = 0
 # 检查会话状态
-if st.session_state['session_# 初始化session state
-if 'authenticated' not in st.session_state:
-    st.session_state['authenticated'] = False
-if 'current_user' not in st.session_state:
-    st.session_state['current_user'] = None
-if 'session_id' not in st.session_state:
-    st.session_state['session_id'] = None
-if 'login_attempts' not in st.session_state:
-    st.session_state['login_attempts'] = {}
-if 'last_login_attempt' not in st.session_state:
-    st.session_state['last_login_attempt'] = {}
-if 'current_project' not in st.session_state:
-    st.session_state['current_project'] = None
-if 'page' not in st.session_state:
-    st.session_state['page'] = "main"
-if 'projects' not in st.session_state:
-    st.session_state['projects'] = {}
-if 'manual_grading' not in st.session_state:
-    st.session_state['manual_grading'] = {
-        'question_count': 0,
-        'scores': {},
-        'current_student_index': 0,
-        'current_image_index': 0
-    }id']:
+f st.session_state['session_id']:
     username = db_manager.verify_session(st.session_state['session_id'])
     if username:
         st.session_state['authenticated'] = True
         st.session_state['current_user'] = username
+
 
 # 登录/注册界面
 if not st.session_state['authenticated']:
