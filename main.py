@@ -408,7 +408,7 @@ elif 'manual_grading' in st.session_state:
     if 'question_count' not in st.session_state['manual_grading']:
         st.session_state['manual_grading']['question_count'] = 0
 # 检查会话状态
-f st.session_state['session_id']:
+if st.session_state['session_id']:
     username = db_manager.verify_session(st.session_state['session_id'])
     if username:
         st.session_state['authenticated'] = True
