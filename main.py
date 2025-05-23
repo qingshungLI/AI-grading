@@ -753,8 +753,8 @@ else:
 
     # 新建项目
     with st.sidebar.expander("➕ 创建新项目"):
-        new_project_name = st.text_input("项目名称（如：2025高一期中考试）")
-        if st.button("创建项目"):
+        new_project_name = st.text_input("项目名称（如：2025高一期中考试）", key="new_project_name_input")
+        if st.button("创建项目", key="create_project_button"):
             if new_project_name in st.session_state['projects']:
                 st.warning("⚠️ 该项目名已存在！")
             elif new_project_name.strip() == "":
@@ -1461,6 +1461,18 @@ if st.session_state['page'] == "main" and st.session_state['current_project']:
             else:
                 st.info("请先在「人工判卷」标签页设置题目数量")
         
+        # 界面设置
+        st.markdown("#### 🎨 界面设置")
+        with st.expander("界面偏好"):
+            st.markdown("自定义界面显示选项")
+            show_preview = st.checkbox("启用图片预览", value=True)
+            if show_preview:
+                preview_size = st.slider("预览图片大小", min_value=100, max_value=800, value=400)
+                st.session_state['preview_size'] = preview_size
+            
+            theme = st.radio("界面主题", ["明亮", "暗黑"], horizontal=True)
+            if theme == "暗黑":
+                st.warning("⚠️ 主题将在下次启动应用时生效")
 
 # 人工判卷页面
 elif st.session_state['page'] == "manual_grading" and st.session_state['current_project']:
