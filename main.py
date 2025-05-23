@@ -641,7 +641,7 @@ if not st.session_state['authenticated']:
         """, unsafe_allow_html=True)
 
 # 登录后立刻显示新手提示
-       st.markdown(
+    st.markdown(
     """
     <div style="font-size:1.3em; background:#333333; color:#ffffff; border-radius:12px; padding:18px 20px; margin-bottom:18px; border:2px solid #555555; display:flex; align-items:center; gap:12px;">
         <span style="font-size:2em;">👉</span>
