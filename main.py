@@ -129,6 +129,31 @@ def fix_uploaded_file(file):
             file.type = mime
     return file
 
+# 添加用户名验证函数
+def validate_username(username):
+    if not username:
+        return False, "用户名不能为空"
+    if len(username) < 3:
+        return False, "用户名长度至少为3个字符"
+    if len(username) > 20:
+        return False, "用户名长度不能超过20个字符"
+    if not username.isalnum():
+        return False, "用户名只能包含字母和数字"
+    return True, "用户名格式正确"
+
+# 添加密码验证函数
+def validate_password(password):
+    if not password:
+        return False, "密码不能为空"
+    if len(password) < 8:
+        return False, "密码长度至少为8个字符"
+    if not any(c.isupper() for c in password):
+        return False, "密码必须包含大写字母"
+    if not any(c.islower() for c in password):
+        return False, "密码必须包含小写字母"
+    if not any(c.isdigit() for c in password):
+        return False, "密码必须包含数字"
+    return True, "密码格式正确"
 
 
 st.markdown("""
@@ -341,20 +366,383 @@ st.markdown("""
 
 # 使用自定义样式的标题
 st.markdown('<div class="artistic-title">📚 AI-grading</div>', unsafe_allow_html=True)
-
+# 初始化数据库管理器
+db_manager = DatabaseManager()
 
 # 初始化 session_state 中的项目列表
 if 'projects' not in st.session_state:
     st.session_state['projects'] = {}  # {项目名: 数据结构}
+if 'current_user' not in st.session_state:
+    st.session_state['current_user'] = None
+if 'session_id' not in st.session_state:
+    st.session_state['session_id'] = None
+if 'login_attempts' not in st.session_state:
+    st.session_state['login_attempts'] = {}
+if 'last_login_attempt' not in st.session_state:
+    st.session_state['last_login_attempt'] = {}
 if 'current_project' not in st.session_state:
     st.session_state['current_project'] = None
+if 'page' not in st.session_state:
+    st.session_state['page'] = "main"
 if 'manual_grading' not in st.session_state:
     st.session_state['manual_grading'] = {
         'question_count': 0,
+        'scores': {},
         'current_student_index': 0,
-        'current_image_index': 0,
-        'scores': {}
+        'current_image_index': 0
     }
+# 确保manual_grading中包含所有必要的键
+elif 'manual_grading' in st.session_state:
+    if 'current_student_index' not in st.session_state['manual_grading']:
+        st.session_state['manual_grading']['current_student_index'] = 0
+    if 'current_image_index' not in st.session_state['manual_grading']:
+        st.session_state['manual_grading']['current_image_index'] = 0
+    if 'scores' not in st.session_state['manual_grading']:
+        st.session_state['manual_grading']['scores'] = {}
+    if 'question_count' not in st.session_state['manual_grading']:
+        st.session_state['manual_grading']['question_count'] = 0
+# 检查会话状态
+if st.session_state['session_id']:
+    username = db_manager.verify_session(st.session_state['session_id'])
+    if username:
+        st.session_state['authenticated'] = True
+        st.session_state['current_user'] = username
+
+# 登录/注册界面
+if not st.session_state['authenticated']:
+    st.title("📚 AI判卷系统 - 登录")
+    
+    # 创建选项卡
+    login_tab, register_tab, reset_tab, help_tab = st.tabs([
+        "🔑 登录", "📝 注册", "🔄 重置密码", "❓ 帮助"
+    ])
+    
+    with login_tab:
+        st.markdown("### 登录")
+        username = st.text_input("用户名")
+        password = st.text_input("密码", type="password")
+        remember_me = st.checkbox("记住登录状态（7天）")
+        
+        # 检查登录尝试次数
+        if username in st.session_state['login_attempts']:
+            attempts = st.session_state['login_attempts'][username]
+            last_attempt = st.session_state['last_login_attempt'].get(username)
+            
+            if attempts >= 5 and last_attempt:
+                lockout_time = last_attempt + timedelta(minutes=15)
+                if datetime.now() < lockout_time:
+                    remaining_time = (lockout_time - datetime.now()).seconds // 60
+                    st.error(f"登录尝试次数过多，请{remaining_time}分钟后再试")
+                    st.stop()
+                else:
+                    # 重置尝试次数
+                    st.session_state['login_attempts'][username] = 0
+        
+        if st.button("登录"): 
+            # 验证用户名格式
+            valid_username, username_msg = validate_username(username)
+            if not valid_username:
+                st.error(username_msg)
+                st.stop()
+            
+            success, message = db_manager.verify_user(username, password)
+            if success:
+                st.session_state['authenticated'] = True
+                st.session_state['current_user'] = username
+                
+                # 如果选择记住登录状态，创建会话
+                if remember_me:
+                    session_id = secrets.token_urlsafe(32)
+                    db_manager.create_session(username, session_id)
+                    st.session_state['session_id'] = session_id
+                
+                # 重置登录尝试次数
+                if username in st.session_state['login_attempts']:
+                    st.session_state['login_attempts'][username] = 0
+                
+                st.success(message)
+                st.rerun()
+            else:
+                # 增加登录尝试次数
+                st.session_state['login_attempts'][username] = st.session_state['login_attempts'].get(username, 0) + 1
+                st.session_state['last_login_attempt'][username] = datetime.now()
+                st.error(message)
+                if st.session_state['login_attempts'][username] >= 3:
+                    st.warning(f"注意：您还有{5 - st.session_state['login_attempts'][username]}次尝试机会")
+    
+    with register_tab:
+        st.markdown("### 注册新用户")
+        new_username = st.text_input("用户名", key="reg_username")
+        new_password = st.text_input("密码", type="password", key="reg_password")
+        confirm_password = st.text_input("确认密码", type="password", key="reg_confirm")
+        
+        # 显示密码强度要求
+        st.markdown("""
+        **密码要求：**
+        - 至少8位长度
+        - 包含大写字母
+        - 包含小写字母
+        - 包含数字
+
+        """)
+        
+        # 预设安全问题列表
+        security_questions = [
+            "你的出生城市是？",
+            "你的小学名称是？",
+            "你的第一个宠物的名字是？",
+            "你最喜欢的运动是？",
+            "你的母亲的名字是？",
+            "你的出生年份是？",
+            "你的第一个手机号码后四位是？",
+            "你的高中班主任的姓氏是？",
+            "你的第一个网名是？",
+            "你的第一个QQ号码后四位是？"
+        ]
+        
+        # 使用selectbox让用户选择安全问题
+        selected_question = st.selectbox(
+            "选择安全问题（请选择一个）",
+            security_questions,
+            key="security_question"
+        )
+        
+        # 用户输入答案
+        hint_answer = st.text_input("安全问题答案", key="hint_answer")
+        
+        if st.button("注册"):
+            # 验证用户名格式
+            valid_username, username_msg = validate_username(new_username)
+            if not valid_username:
+                st.error(username_msg)
+                st.stop()
+            
+            # 验证密码强度
+            valid_password, password_msg = validate_password(new_password)
+            if not valid_password:
+                st.error(password_msg)
+                st.stop()
+            
+            if new_password != confirm_password:
+                st.error("两次输入的密码不一致")
+            elif not new_username or not new_password or not hint_answer:
+                st.error("请填写所有必填项")
+            else:
+                success, message = db_manager.register_user(new_username, new_password, selected_question, hint_answer)
+                if success:
+                    st.success(message)
+                else:
+                    st.error(message)
+    
+    with reset_tab:
+        st.markdown("### 重置密码")
+        reset_username = st.text_input("用户名", key="reset_username")
+        if reset_username:
+            hint = db_manager.get_hint(reset_username)
+            if hint:
+                st.info(f"安全问题：{hint}")
+                hint_answer = st.text_input("安全问题答案", key="reset_answer")
+                new_password = st.text_input("新密码", type="password", key="reset_new_password")
+                confirm_new_password = st.text_input("确认新密码", type="password", key="reset_confirm")
+                
+                # 显示密码强度要求
+                st.markdown("""
+                **新密码要求：**
+                - 至少8位长度
+                - 包含大写字母
+                - 包含小写字母
+                - 包含数字
+                
+                """)
+                
+                if st.button("重置密码"):
+                    # 验证密码强度
+                    valid_password, password_msg = validate_password(new_password)
+                    if not valid_password:
+                        st.error(password_msg)
+                        st.stop()
+                    
+                    if new_password != confirm_new_password:
+                        st.error("两次输入的密码不一致")
+                    else:
+                        if db_manager.verify_hint_answer(reset_username, hint_answer):
+                            success, message = db_manager.reset_password(reset_username, new_password)
+                            if success:
+                                st.success(message)
+                            else:
+                                st.error(message)
+                        else:
+                            st.error("安全问题答案错误")
+            else:
+                st.error("用户不存在")
+
+    with help_tab:
+        st.markdown("### 💡 登录与注册帮助")
+        st.markdown("""
+        <div class="help-content">
+        <h4>登录问题解答</h4>
+        <ul>
+            <li><strong>无法登录？</strong> 请检查用户名和密码是否正确，区分大小写</li>
+            <li><strong>账号被锁定？</strong> 连续5次错误登录后账号会被锁定15分钟</li>
+            <li><strong>需要长期登录？</strong> 请勾选"记住登录状态"，可保持7天</li>
+        </ul>
+        
+        <h4>注册须知</h4>
+        <ul>
+            <li><strong>用户名要求：</strong></li>
+            <li>- 长度3-20个字符</li>
+            <li>- 只能包含字母和数字</li>
+            <li>- 注册后不可更改</li>
+        </ul>
+        <ul>
+            <li><strong>密码要求：</strong></li>
+            <li>- 至少8位长度</li>
+            <li>- 包含大写字母</li>
+            <li>- 包含小写字母</li>
+            <li>- 包含数字</li>
+        </ul>
+        <ul>
+            <li><strong>密码要求：</strong></li>
+            <li>- 至少8位长度</li>
+            <li>- 包含大写字母</li>
+            <li>- 包含小写字母</li>
+            <li>- 包含数字</li>
+        </ul>
+        <ul>
+            <li><strong>安全问题：</strong></li>
+            <li>- 用于密码找回</li>
+            <li>- 请选择容易记住但他人难以猜测的答案</li>
+            <li>- 答案区分大小写</li>
+        </ul>
+        
+        <h4>密码找回</h4>
+        <ul>
+            <li>通过"重置密码"标签页</li>
+            <li>输入用户名</li>
+            <li>回答预设的安全问题</li>
+            <li>设置新密码</li>
+        </ul>
+        
+        <h4>注意事项</h4>
+        <ul>
+            <li>定期更换密码可提高账号安全性</li>
+            <li>请勿与他人分享您的登录信息</li>
+            <li>尽量避免在公共设备上记住登录状态</li>
+            <li>如遇严重问题请联系管理员</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+# 登录后立刻显示新手提示
+        st.markdown(
+    """
+    <div style="font-size:1.3em; background:#fffbe6; border-radius:12px; padding:18px 20px; margin-bottom:18px; border:2px solid #ffe066; display:flex; align-items:center; gap:12px;">
+        <span style="font-size:2em;">👉</span>
+        <span>
+            <b>欢迎使用AI判卷系统！</b><br>
+            请点击左上角的 <b style="font-size:1.2em;">""> </b> 展开侧边栏，<br>
+            然后点击 <b>➕ 创建新项目</b> 开始体验吧！
+        </span>
+        <span style="font-size:2em;">✨</span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# 主界面
+else:
+    # 添加登出按钮
+    if st.sidebar.button("登出"):
+        if st.session_state['session_id']:
+            db_manager.delete_session(st.session_state['session_id'])
+        st.session_state['authenticated'] = False
+        st.session_state['current_user'] = None
+        st.session_state['session_id'] = None
+        st.rerun()
+    
+    st.sidebar.markdown(f"当前用户：{st.session_state['current_user']}")
+    
+    # 添加教程展开器
+    with st.sidebar.expander("📖 使用教程", expanded=False):
+        st.markdown("""
+        <div class="tutorial-content">
+        <h3>快速入门指南</h3>
+        
+        <h4>1. 创建新项目</h4>
+        <ul>
+            <li>点击侧边栏的"➕ 创建新项目"</li>
+            <li>输入项目名称（如：2024高一期中考试）</li>
+            <li>点击"创建项目"按钮</li>
+        </ul>
+
+        <h4>2. 上传内容</h4>
+        <ul>
+            <li>在"📤 内容上传"标签页中：</li>
+            <li>上传题目图片或文档</li>
+            <li>上传标准答案</li>
+            <li>添加学生并上传他们的作答内容</li>
+            <li>上传评分标准（可选）</li>
+        </ul>
+
+        <h4>3. 评分方式</h4>
+        <ul>
+            <li><strong>人工评分：</strong></li>
+            <li>点击"🖋️ 人工判卷"标签页</li>
+            <li>设置题目数量</li>
+            <li>点击"开始人工判卷"</li>
+            <li>逐题评分并保存</li>
+        </ul>
+        <ul>   
+            <li><strong>AI自动评分：</strong></li>
+            <li>点击"AI自动评分"按钮</li>
+            <li>等待AI完成评分</li>
+            <li>在"成绩表单"中查看结果</li>
+        </ul>
+
+        <h4>4. 查看成绩</h4>
+        <ul>
+            <li>在"📊 成绩表单"标签页中：</li>
+            <li>查看所有学生的成绩</li>
+            <li>查看各模型的评分详情</li>
+            <li>导出成绩表到Excel</li> 
+            <li>查看统计信息</li>
+        </ul>
+
+        <h4>5. 系统设置</h4>
+        <ul>
+            <li><strong>考试满分设置：</strong></li>
+            <li>在成绩表单页面点击"⚙️ 设置考试满分"</li>
+            <li>输入新的满分值</li>
+            <li>点击确认修改</li>
+        </ul>
+        <ul>
+            <li><strong>AI模型选择：</strong></li>
+            <li>系统支持多个AI模型：</li>
+            <li>- 千问模型（默认）</li>
+            <li>- Moonshot模型</li>
+            <li>- 智谱AI模型</li>
+            <li>可在评分时选择使用不同模型</li>
+        </ul>
+        <ul>
+            <li><strong>文件格式支持：</strong></li>
+            <li>图片：PNG, JPG, JPEG</li>
+            <li>文档：PDF, DOCX, DOC</li>
+            <li>文本：TXT</li>
+        </ul>
+        <ul>  
+            <li><strong>账号管理：</strong></li>
+            <li>可随时修改密码</li>
+            <li>支持记住登录状态（7天）</li>
+            <li>忘记密码可通过安全问题重置</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+ 
+    # 从数据库加载用户的项目数据
+    if 'projects' not in st.session_state:
+        st.session_state['projects'] = db_manager.get_user_projects(st.session_state['current_user'])
+    if 'current_project' not in st.session_state:
+        st.session_state['current_project'] = None
 
 # --------------------
 # 1. 项目管理区域
