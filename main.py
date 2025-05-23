@@ -19,11 +19,13 @@ import logging
 import zhipuai 
 import docx2pdf
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')  # 使用非交互式后端
 from jsoncat import *
+from db_manager import DatabaseManager
+import secrets
 # Import OpenAI client for Moonshot API
 from openai import OpenAI
 import base64
