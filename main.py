@@ -372,6 +372,8 @@ st.markdown('<div class="artistic-title">📚 AI-grading</div>', unsafe_allow_ht
 db_manager = DatabaseManager()
 
 # 初始化 session_state 中的项目列表
+if 'authenticated' not in st.session_state:
+    st.session_state['authenticated'] = False
 if 'projects' not in st.session_state:
     st.session_state['projects'] = {}  # {项目名: 数据结构}
 if 'current_user' not in st.session_state:
