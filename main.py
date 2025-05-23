@@ -372,10 +372,9 @@ st.markdown('<div class="artistic-title">📚 AI-grading</div>', unsafe_allow_ht
 db_manager = DatabaseManager()
 
 # 初始化 session_state 中的项目列表
+# 初始化session state
 if 'authenticated' not in st.session_state:
     st.session_state['authenticated'] = False
-if 'projects' not in st.session_state:
-    st.session_state['projects'] = {}  # {项目名: 数据结构}
 if 'current_user' not in st.session_state:
     st.session_state['current_user'] = None
 if 'session_id' not in st.session_state:
@@ -388,6 +387,31 @@ if 'current_project' not in st.session_state:
     st.session_state['current_project'] = None
 if 'page' not in st.session_state:
     st.session_state['page'] = "main"
+if 'projects' not in st.session_state:
+    st.session_state['projects'] = {}
+if 'manual_grading' not in st.session_state:
+    st.session_state['manual_grading'] = {
+        'question_count': 0,
+        'scores': {},
+        'current_student_index': 0,
+        'current_image_index': 0
+    }# 初始化session state
+if 'authenticated' not in st.session_state:
+    st.session_state['authenticated'] = False
+if 'current_user' not in st.session_state:
+    st.session_state['current_user'] = None
+if 'session_id' not in st.session_state:
+    st.session_state['session_id'] = None
+if 'login_attempts' not in st.session_state:
+    st.session_state['login_attempts'] = {}
+if 'last_login_attempt' not in st.session_state:
+    st.session_state['last_login_attempt'] = {}
+if 'current_project' not in st.session_state:
+    st.session_state['current_project'] = None
+if 'page' not in st.session_state:
+    st.session_state['page'] = "main"
+if 'projects' not in st.session_state:
+    st.session_state['projects'] = {}
 if 'manual_grading' not in st.session_state:
     st.session_state['manual_grading'] = {
         'question_count': 0,
@@ -406,7 +430,30 @@ elif 'manual_grading' in st.session_state:
     if 'question_count' not in st.session_state['manual_grading']:
         st.session_state['manual_grading']['question_count'] = 0
 # 检查会话状态
-if st.session_state['session_id']:
+if st.session_state['session_# 初始化session state
+if 'authenticated' not in st.session_state:
+    st.session_state['authenticated'] = False
+if 'current_user' not in st.session_state:
+    st.session_state['current_user'] = None
+if 'session_id' not in st.session_state:
+    st.session_state['session_id'] = None
+if 'login_attempts' not in st.session_state:
+    st.session_state['login_attempts'] = {}
+if 'last_login_attempt' not in st.session_state:
+    st.session_state['last_login_attempt'] = {}
+if 'current_project' not in st.session_state:
+    st.session_state['current_project'] = None
+if 'page' not in st.session_state:
+    st.session_state['page'] = "main"
+if 'projects' not in st.session_state:
+    st.session_state['projects'] = {}
+if 'manual_grading' not in st.session_state:
+    st.session_state['manual_grading'] = {
+        'question_count': 0,
+        'scores': {},
+        'current_student_index': 0,
+        'current_image_index': 0
+    }id']:
     username = db_manager.verify_session(st.session_state['session_id'])
     if username:
         st.session_state['authenticated'] = True
