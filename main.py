@@ -645,7 +645,7 @@ if not st.session_state['authenticated']:
     """
     <div style="font-size:1.3em; background:#fffbe6; border-radius:12px; padding:18px 20px; margin-bottom:18px; border:2px solid #ffe066; display:flex; align-items:center; gap:12px;">
         <span style="font-size:2em;">👉</span>
-        <span>
+        <span style="color:#ffffff;">
             <b>欢迎使用AI判卷系统！</b><br>
             请点击左上角的 <b style="font-size:1.2em;">""> </b> 展开侧边栏，<br>
             然后点击 <b>➕ 创建新项目</b> 开始体验吧！
@@ -655,6 +655,7 @@ if not st.session_state['authenticated']:
     """,
     unsafe_allow_html=True
 )
+
 
 # 主界面
 else:
