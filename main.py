@@ -787,55 +787,7 @@ else:
     else:
         st.sidebar.info("暂无项目，请先创建")
 
-# 主页面
-if st.session_state['page'] == "main" and st.session_state['current_project']:
-    st.markdown(f"### 当前项目：`{st.session_state['current_project']}`")
-    
-    # 添加选项卡
-    tab1, tab2, tab3, tab4 = st.tabs(["📤 内容上传", "🖋️ 人工判卷", "📊 成绩表单", "⚙️ 设置"])
-    
-    with tab1:
-        st.markdown("请上传判卷所需的内容，每项支持多张图片和多个文档上传，可自定义名称：")
 
-        # 移动所有上传功能到Tab1中
-        upload_section("📝 题目", "q")
-        upload_section("📄 标准答案", "ans")
-        upload_student_section()
-        upload_section("✅ 评分标准", "rub")
-
-# --------------------
-# 1. 项目管理区域
-# --------------------
-st.sidebar.header("🗂️ 项目管理")
-
-# 新建项目
-with st.sidebar.expander("➕ 创建新项目"):
-    new_project_name = st.text_input("项目名称（如：2025高一期中考试）")
-    if st.button("创建项目"):
-        if new_project_name in st.session_state['projects']:
-            st.warning("⚠️ 该项目名已存在！")
-        elif new_project_name.strip() == "":
-            st.warning("⚠️ 项目名不能为空")
-        else:
-            st.session_state['projects'][new_project_name] = {}
-            st.session_state['current_project'] = new_project_name
-            st.success(f"✅ 已创建并进入项目：{new_project_name}")
-
-# 选择已有项目
-if st.session_state['projects']:
-    for name in list(st.session_state['projects'].keys()):
-        col1, col2 = st.sidebar.columns([4, 1])
-        if col1.button(f"📁 {name}", key=f"switch_{name}"):
-            st.session_state['current_project'] = name
-        if col2.button("❌", key=f"delete_{name}"):
-            del st.session_state['projects'][name]
-            st.sidebar.warning(f"🗑️ 已删除项目：{name}")
-            if st.session_state['current_project'] == name:
-                st.session_state['current_project'] = next(
-                    iter(st.session_state['projects']), None)
-
-else:
-    st.sidebar.info("暂无项目，请先创建")
 
 # 定义上传学生内容的函数
 def upload_student_section():
